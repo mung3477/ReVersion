@@ -630,7 +630,7 @@ class ReVersionTrainer():
 
 			# Save the newly trained embeddings
 			save_path = os.path.join(args.output_dir, "learned_embeds.bin")
-			self._save_embeddings(self.text_encoder, self.placeholder_token_id, accelerator, args, save_path)
+			self._save_embeddings(save_path)
 
 			if args.push_to_hub:
 				self.repo.push_to_hub(

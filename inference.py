@@ -1,13 +1,12 @@
-import os
 import argparse
+import math
+import os
 
 import torch
+from diffusers import StableDiffusionPipeline
 from PIL import Image
 
-from diffusers import StableDiffusionPipeline
-from templates.templates import inference_templates
-
-import math
+from ReVersion.templates import inference_templates
 
 """
 Inference script for generating batch results
@@ -126,9 +125,9 @@ def main():
 
         embed_path = os.path.join(args.model_id, 'learned_embeds.bin')
         learned_embeds = torch.load(embed_path)
-        
+
         pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5",torch_dtype=torch.float16).to("cuda")
-        
+
         text_encoder = pipe.text_encoder
         tokenizer = pipe.tokenizer
 
@@ -138,7 +137,7 @@ def main():
         # Add the placeholder token in tokenizer
         tokenizer.add_tokens(args.placeholder_string)
         text_encoder.get_input_embeddings().weight.data = torch.cat((orig_embeds_params, orig_embeds_params[0:1]))
-        text_encoder.resize_token_embeddings(len(tokenizer)) 
+        text_encoder.resize_token_embeddings(len(tokenizer))
 
         # Let's make sure we don't update any embedding weights besides the newly added token
         placeholder_token_id = tokenizer.convert_tokens_to_ids(args.placeholder_string)
@@ -177,7 +176,8 @@ def main():
         os.makedirs(image_folder, exist_ok = True)
 
         # batch generation
-        images = pipe(prompt, num_inference_steps=50, guidance_scale=args.guidance_scale, num_images_per_prompt=args.num_samples).images
+        generator = torch.Generator("cuda").manual_seed(602)
+        images = pipe(prompt, num_inference_steps=50, guidance_scale=args.guidance_scale, num_images_per_prompt=args.num_samples, generator=generator).images
 
         # save generated images
         for idx, image in enumerate(images):
