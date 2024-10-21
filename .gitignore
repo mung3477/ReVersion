@@ -179,3 +179,7 @@ tags
 /experiments
 /train
 reversion_benchmark_v1
+
+*.jpg
+*.json
+*.sh
